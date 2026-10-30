@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineCam Param Lab · 界面设计稿</title>
+<style>
+:root{
+  --bg-canvas:#0B0D10; --bg-panel:#111419; --bg-raised:#171B21; --bg-raised-2:#1E232B; --bg-overlay:#222831;
+  --border-subtle:#242A33; --border-default:#2E3540; --border-strong:#3C4451;
+  --text-primary:#E8ECF2; --text-secondary:#A3ADBD; --text-tertiary:#6B7585;
+  --accent:#4DA3FF; --accent-dim:#2E6DA8; --accent-glow:rgba(77,163,255,.18);
+  --state-warn:#E8A33D; --state-ok:#4FBF7B; --state-err:#E5544B; --state-info:#7B8CE8;
+  --c-shot:#5FB8FF; --c-composition:#7B8CE8; --c-lens:#4FBF7B; --c-motion:#4FD1C5;
+  --c-light:#F2A93B; --c-color:#F2719F; --c-tone:#C084FC; --c-texture:#E8A33D;
+  --c-atmosphere:#68C9A8; --c-style:#F5C563; --c-quality:#8D99AE;
+  --font-sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+  --sidebar-w:320px; --panel-w:400px; --topbar-h:52px;
+  --radius-sm:4px; --radius-md:6px; --radius-lg:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--font-sans); background:var(--bg-canvas); color:var(--text-primary);
+  font-size:13px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+
+/* ── 布局 ─────────────────────────────── */
+.app{
+  display:grid;
+  grid-template-columns:var(--sidebar-w) minmax(0,1fr) var(--panel-w);
+  grid-template-rows:var(--topbar-h) minmax(0,1fr);
+  height:100dvh;
+}
+.topbar{
+  grid-column:1/-1; display:flex; align-items:center; gap:12px;
+  padding:0 14px; background:var(--bg-panel); border-bottom:1px solid var(--border-subtle);
+}
+.logo{display:flex;align-items:center;gap:9px;padding-right:12px;border-right:1px solid var(--border-subtle)}
+.logo-mark{width:22px;height:22px;flex:none}
+.logo-txt{font-size:13px;font-weight:500;letter-spacing:.01em;white-space:nowrap}
+.logo-txt span{color:var(--text-tertiary);font-weight:400}
+.spacer{flex:1}
+
+/* 预设下拉 */
+.preset-btn{
+  display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;
+  background:var(--bg-raised);border:1px solid var(--border-default);border-radius:var(--radius-md);
+  font-size:12px;color:var(--text-secondary);
+}
+.preset-btn b{color:var(--text-primary);font-weight:500}
+.preset-btn:hover{border-color:var(--border-strong);background:var(--bg-raised-2)}
+
+.icon-btn{
+  width:30px;height:30px;display:grid;place-items:center;border-radius:var(--radius-md);
+  border:1px solid transparent;color:var(--text-tertiary);
+}
+.icon-btn:hover{background:var(--bg-raised);color:var(--text-primary);border-color:var(--border-default)}
+.icon-btn:disabled{opacity:.35;cursor:default}
+.btn-primary{
+  height:30px;padding:0 13px;border-radius:var(--radius-md);background:var(--accent);
+  color:#08131F;font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;
+}
+.btn-primary:hover{background:#63b0ff}
+
+/* ── 侧栏 ─────────────────────────────── */
+.sidebar{
+  background:var(--bg-panel);border-right:1px solid var(--border-subtle);
+  display:flex;flex-direction:column;min-height:0;
+}
+.search{
+  margin:12px;padding:0 10px;height:32px;display:flex;align-items:center;gap:8px;
+  background:var(--bg-raised);border:1px solid var(--border-default);border-radius:var(--radius-md);
+}
+.search input{
+  flex:1;background:none;border:none;outline:none;color:var(--text-primary);font-size:12px;
+}
+.search input::placeholder{color:var(--text-tertiary)}
+.search kbd{
+  font-family:var(--font-mono);font-size:10px;color:var(--text-tertiary);
+  border:1px solid var(--border-default);border-radius:3px;padding:1px 4px;
+}
+.scroll{flex:1;overflow-y:auto;min-height:0}
+.scroll::-webkit-scrollbar{width:8px}
+.scroll::-webkit-scrollbar-track{background:transparent}
+.scroll::-webkit-scrollbar-thumb{background:var(--border-default);border-radius:4px}
+
+.group{border-bottom:1px solid var(--border-subtle)}
+.group-head{
+  width:100%;display:flex;align-items:center;gap:8px;padding:11px 12px;text-align:left;
+}
+.group-head:hover{background:var(--bg-raised)}
+.group-caret{width:8px;height:8px;flex:none;color:var(--text-tertiary);transition:transform .18s}
+.group[data-open="false"] .group-caret{transform:rotate(-90deg)}
+.group-name{font-size:12px;font-weight:500}
+.group-sum{font-size:11px;color:var(--text-tertiary);margin-left:auto;text-align:right;max-width:130px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-body{padding:2px 12px 14px}
+
+.row{padding:7px 0}
+.row-head{display:flex;align-items:baseline;gap:8px;margin-bottom:7px}
+.row-name{font-size:12px;color:var(--text-secondary);display:flex;align-items:center;gap:5px}
+.row-name .approx{color:var(--state-warn);font-size:10px;cursor:help}
+.row-val{margin-left:auto;font-size:12px;color:var(--text-primary);font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.row-val.changed{color:var(--accent)}
+.row-val .u{color:var(--text-tertiary);font-size:11px}
+
+.slider{position:relative;height:16px;cursor:pointer}
+.track{position:absolute;top:6px;left:0;right:0;height:4px;background:var(--bg-raised-2);border-radius:2px}
+.fill{position:absolute;top:6px;left:0;height:4px;background:var(--accent);border-radius:2px}
+.thumb{
+  position:absolute;top:3px;width:14px;height:14px;margin-left:-7px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--bg-canvas);transition:transform .15s cubic-bezier(.34,1.56,.64,1);
+}
+.slider:hover .thumb{transform:scale(1.15)}
+.slider:focus-within .thumb{box-shadow:0 0 0 3px var(--accent-glow)}
+.ticks{position:relative;height:13px;margin-top:3px}
+.ticks i{position:absolute;top:0;width:1px;height:3px;background:var(--border-strong)}
+.ticks span{position:absolute;top:3px;transform:translateX(-50%);font-size:10px;color:var(--text-tertiary);
+  font-family:var(--font-mono)}
+.hint{font-size:11px;color:var(--text-tertiary);margin-top:5px}
+
+/* 下拉 */
+.select{
+  width:100%;height:30px;display:flex;align-items:center;gap:8px;padding:0 9px;
+  background:var(--bg-raised);border:1px solid var(--border-default);border-radius:var(--radius-md);
+  font-size:12px;color:var(--text-primary);
+}
+.select:hover{border-color:var(--border-strong)}
+.select .cv{margin-left:auto;color:var(--text-tertiary)}
+.select .chip{
+  font-size:10px;padding:1px 5px;border-radius:3px;
+  background:var(--bg-raised-2);color:var(--text-secondary);border:1px solid var(--border-default);
+}
+
+/* 分段控件 */
+.seg{display:flex;gap:2px;padding:2px;background:var(--bg-raised);border-radius:var(--radius-md)}
+.seg button{
+  flex:1;padding:4px 6px;border-radius:var(--radius-sm);font-size:11px;color:var(--text-tertiary);
+  transition:background .15s;
+}
+.seg button:hover{color:var(--text-secondary)}
+.seg button[aria-pressed="true"]{background:var(--bg-raised-2);color:var(--text-primary);
+  box-shadow:inset 0 0 0 1px var(--border-strong)}
+
+/* 标签集 */
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{
+  font-size:11px;padding:3px 8px;border-radius:11px;
+  border:1px solid var(--border-default);color:var(--text-secondary);background:var(--bg-raised);
+}
+.tag[aria-pressed="true"]{color:var(--accent);border-color:var(--accent);background:var(--accent-glow)}
+
+/* 颜色 */
+.colorrow{display:flex;align-items:center;gap:8px}
+.swatch{width:20px;height:20px;border-radius:var(--radius-sm);border:1px solid var(--border-strong)}
+
+/* ── 中栏 ─────────────────────────────── */
+.stage{
+  background:var(--bg-canvas);position:relative;display:flex;flex-direction:column;min-height:0;min-width:0;
+}
+.stage-bar{
+  height:38px;display:flex;align-items:center;gap:10px;padding:0 14px;
+  border-bottom:1px solid var(--border-subtle);background:var(--bg-panel);
+}
+.stage-bar .title{font-size:12px;color:var(--text-secondary)}
+.stage-bar .tools{display:flex;gap:2px;margin-left:auto}
+.tool{
+  height:24px;padding:0 9px;border-radius:var(--radius-sm);font-size:11px;color:var(--text-tertiary);
+  display:flex;align-items:center;gap:5px;
+}
+.tool:hover{background:var(--bg-raised);color:var(--text-primary)}
+.tool[aria-pressed="true"]{background:var(--bg-raised-2);color:var(--accent)}
+
+.viewport{flex:1;display:grid;place-items:center;padding:20px;min-height:0;min-width:0}
+.frame{
+  position:relative;width:100%;max-width:760px;aspect-ratio:16/9;overflow:hidden;
+  border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
+  background:#05070a;
+}
+/* 模拟参考图：夜景霓虹街道 */
+.photo{position:absolute;inset:0}
+.sky{position:absolute;inset:0;background:linear-gradient(180deg,#0a1626 0%,#16283f 42%,#241a2b 68%,#120d16 100%)}
+.moon{position:absolute;top:12%;right:16%;width:52px;height:52px;border-radius:50%;
+  background:radial-gradient(circle,#ffe9c0 0%,rgba(255,220,170,.35) 42%,transparent 70%)}
+.buildings{position:absolute;left:0;right:0;bottom:38%;height:46%;
+  background:repeating-linear-gradient(90deg,#0b1119 0 22px,#0e151f 22px 48px)}
+.buildings::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(255,214,140,.5) 0 3px,transparent 3px 26px);
+  -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 12px,transparent 12px 44px);
+          mask-image:repeating-linear-gradient(90deg,#000 0 12px,transparent 12px 44px);
+  opacity:.5;
+}
+.street{position:absolute;left:0;right:0;bottom:0;height:38%;
+  background:linear-gradient(180deg,#171320 0%,#221a26 55%,#0d0a12 100%)}
+.wet{position:absolute;left:0;right:0;bottom:0;height:38%;
+  background:linear-gradient(180deg,rgba(255,120,80,.16),transparent 60%)}
+.neon{position:absolute;border-radius:2px;filter:blur(1px)}
+.n1{left:9%;top:44%;width:56px;height:7px;background:#ff4d7e;box-shadow:0 0 16px 4px rgba(255,77,126,.55)}
+.n2{left:26%;top:38%;width:34px;height:6px;background:#4fd1c5;box-shadow:0 0 14px 3px rgba(79,209,197,.5)}
+.n3{right:11%;top:41%;width:44px;height:6px;background:#ffa63d;box-shadow:0 0 15px 3px rgba(255,166,61,.5)}
+.refl{position:absolute;bottom:6%;height:26%;width:3px;border-radius:2px;filter:blur(2px);opacity:.55}
+.figure{position:absolute;left:47%;bottom:24%;width:26px;height:88px;
+  background:linear-gradient(180deg,#05070a,#0d1118);border-radius:40% 40% 18% 18%}
+
+/* HUD */
+.hud{
+  position:absolute;top:10px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:0;padding:5px 4px;
+  background:rgba(17,20,25,.72);backdrop-filter:blur(12px);
+  border:1px solid var(--border-default);border-radius:var(--radius-md);
+  font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);
+}
+.hud span{padding:0 8px;white-space:nowrap}
+.hud span+span{border-left:1px solid var(--border-default)}
+.hud b{color:var(--text-primary);font-weight:400}
+
+/* 对比分割 */
+.divider{position:absolute;top:0;bottom:0;left:52%;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.handle{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:30px;height:30px;border-radius:50%;background:#fff;
+  display:grid;place-items:center;box-shadow:0 2px 10px rgba(0,0,0,.5);cursor:ew-resize;
+}
+.badge{
+  position:absolute;top:10px;padding:3px 8px;border-radius:var(--radius-sm);
+  background:rgba(17,20,25,.78);backdrop-filter:blur(10px);
+  font-size:10px;color:var(--text-secondary);letter-spacing:.04em;
+}
+.badge.l{left:10px}
+.badge.r{right:10px;color:var(--accent)}
+
+.statusbar{
+  height:26px;display:flex;align-items:center;gap:14px;padding:0 14px;
+  border-top:1px solid var(--border-subtle);background:var(--bg-panel);
+  font-size:10px;color:var(--text-tertiary);font-family:var(--font-mono);
+}
+
+/* ── 右栏 ─────────────────────────────── */
+.panel{
+  background:var(--bg-panel);border-left:1px solid var(--border-subtle);
+  display:flex;flex-direction:column;min-height:0;
+}
+.panel-head{padding:12px 14px 0;display:flex;flex-direction:column;gap:9px}
+.tabs{display:flex;gap:1px;background:var(--bg-raised);padding:2px;border-radius:var(--radius-md)}
+.tabs button{flex:1;padding:5px 4px;border-radius:var(--radius-sm);font-size:11px;color:var(--text-tertiary)}
+.tabs button:hover{color:var(--text-secondary)}
+.tabs button[aria-pressed="true"]{background:var(--bg-raised-2);color:var(--text-primary);box-shadow:inset 0 0 0 1px var(--border-strong)}
+.panel-scroll{flex:1;overflow-y:auto;min-height:0;padding:12px 14px}
+.panel-scroll::-webkit-scrollbar{width:8px}
+.panel-scroll::-webkit-scrollbar-thumb{background:var(--border-default);border-radius:4px}
+
+.sec-title{
+  display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-tertiary);
+  letter-spacing:.06em;text-transform:uppercase;margin:0 0 8px;
+}
+.sec-title::after{content:"";flex:1;height:1px;background:var(--border-subtle)}
+
+.out{
+  background:var(--bg-raised);border:1px solid var(--border-default);border-radius:var(--radius-lg);
+  padding:12px;position:relative;
+}
+.out-body{font-family:var(--font-mono);font-size:11.5px;line-height:1.85;color:var(--text-secondary);word-break:break-word}
+.out-body .w{color:var(--text-primary)}
+.out-body .flag{color:var(--accent)}
+.out-body .num{color:var(--state-warn)}
+.out-body .punct{color:var(--text-tertiary)}
+.out-foot{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--border-subtle)}
+.copy{
+  margin-left:auto;height:26px;padding:0 11px;border-radius:var(--radius-md);
+  border:1px solid var(--border-default);background:var(--bg-raised-2);
+  font-size:11px;color:var(--text-primary);display:flex;align-items:center;gap:5px;
+}
+.copy:hover{border-color:var(--accent);color:var(--accent)}
+
+/* 词条 */
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;font-size:10.5px;padding:3px 7px;
+  border-radius:var(--radius-sm);border:1px solid;
+  color:var(--text-secondary);background:var(--bg-raised);
+}
+.chip i{width:5px;height:5px;border-radius:50%;flex:none}
+.chip:hover{color:var(--text-primary)}
+.chip.muted{opacity:.45;text-decoration:line-through}
+
+.fidelity{display:flex;gap:6px;align-items:center}
+.fid{display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-tertiary);
+  padding:3px 8px;border-radius:var(--radius-sm);background:var(--bg-raised);border:1px solid var(--border-subtle)}
+.fid b{font-weight:500;font-family:var(--font-mono)}
+
+.neg{
+  background:var(--bg-raised);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);
+  padding:10px 12px;font-family:var(--font-mono);font-size:11px;line-height:1.75;color:var(--text-tertiary);
+}
+.src{margin-top:8px;font-size:10.5px;color:var(--text-tertiary);display:flex;flex-wrap:wrap;gap:5px}
+.src b{color:var(--text-secondary);font-weight:400}
+
+.mapping{
+  margin-top:10px;padding:9px 11px;background:var(--bg-raised);border:1px solid var(--border-default);
+  border-radius:var(--radius-md);font-size:11px;color:var(--text-secondary);
+}
+.mapping .chain{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:var(--font-mono);font-size:10.5px}
+.mapping .arrow{color:var(--text-tertiary)}
+.mapping .k{color:var(--text-primary)}
+.mapping .t{color:var(--accent)}
+.mapping .hint{margin-top:6px;color:var(--text-tertiary);font-family:var(--font-sans);font-size:10.5px}
+
+/* 空态 */
+.empty{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;text-align:center;color:var(--text-tertiary);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ 顶栏 ══ -->
+  <header class="topbar">
+    <div class="logo">
+      <svg class="logo-mark" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9.2" stroke="#4DA3FF" stroke-width="1.3"/>
+        <path d="M12 2.8 L12 12 L19.6 16.6" stroke="#4DA3FF" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M12 12 L4.4 16.6" stroke="#4DA3FF" stroke-width="1.3" stroke-linecap="round"/>
+        <path d="M2.5 20.4 L21.5 20.4" stroke="#6B7585" stroke-width="1.1" stroke-linecap="round"/>
+      </svg>
+      <div class="logo-txt">CineCam <span>Param Lab</span></div>
+    </div>
+
+    <button class="preset-btn">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B7585" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+      预设 <b>霓虹夜雨</b>
+      <svg class="cv" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6B7585" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+
+    <div class="spacer"></div>
+
+    <button class="icon-btn" title="撤销 (Ctrl+Z)" disabled>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>
+    </button>
+    <button class="icon-btn" title="重做 (Ctrl+Shift+Z)" disabled>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg>
+    </button>
+    <button class="icon-btn" title="重置全部">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.6L3 8"/><path d="M3 3v5h5"/></svg>
+    </button>
+    <div style="width:1px;height:18px;background:var(--border-subtle)"></div>
+    <button class="icon-btn" title="分享链接">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></svg>
+    </button>
+    <button class="icon-btn" title="导出 JSON">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/></svg>
+    </button>
+    <button class="btn-primary">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      复制提示词
+    </button>
+  </header>
+
+  <!-- ══ 左：参数面板 ══ -->
+  <aside class="sidebar">
+    <div class="search">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B7585" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input placeholder="搜索参数，如 光圈 / grain">
+      <kbd>/</kbd>
+    </div>
+
+    <div class="scroll">
+      <!-- 已展开：曝光 -->
+      <section class="group" data-open="true">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">曝光</span>
+          <span class="group-sum">f/1.8 · 1/48s · ISO 800</span>
+        </button>
+        <div class="group-body">
+          <div class="row">
+            <div class="row-head">
+              <span class="row-name">光圈</span>
+              <span class="row-val changed">f/1.8</span>
+            </div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div></div>
+            <div class="ticks">
+              <i style="left:0"></i><span style="left:0">0.7</span>
+              <i style="left:34%"></i><span style="left:34%">1.8</span>
+              <i style="left:68%"></i><span style="left:68%">8</span>
+              <i style="left:100%"></i><span style="left:100%">22</span>
+            </div>
+            <div class="hint">极浅景深，背景奶油化虚化</div>
+          </div>
+
+          <div class="row">
+            <div class="row-head">
+              <span class="row-name">快门速度</span>
+              <span class="row-val changed">1/48 s</span>
+            </div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:46%"></div><div class="thumb" style="left:46%"></div></div>
+            <div class="hint">电影级自然运动模糊</div>
+          </div>
+
+          <div class="row">
+            <div class="row-head">
+              <span class="row-name">ISO</span>
+              <span class="row-val">800</span>
+            </div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:38%"></div><div class="thumb" style="left:38%"></div></div>
+            <div class="hint">细腻颗粒，暗部细节保留</div>
+          </div>
+
+          <div class="row">
+            <div class="row-head">
+              <span class="row-name">白平衡 <span class="approx" title="精确色温值 AI 模型通常不敏感，会被转译为体感描述">≈</span></span>
+              <span class="row-val changed">3200 K</span>
+            </div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:17%"></div><div class="thumb" style="left:17%"></div></div>
+            <div class="hint">暖调 · 钨丝灯白平衡</div>
+          </div>
+
+          <div class="row">
+            <div class="row-head"><span class="row-name">曝光补偿</span><span class="row-val">+0.0 EV</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:50%"></div><div class="thumb" style="left:50%"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 已展开：镜头 -->
+      <section class="group" data-open="true">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">镜头</span>
+          <span class="group-sum">35mm · 圆形焦外</span>
+        </button>
+        <div class="group-body">
+          <div class="row">
+            <div class="row-head"><span class="row-name">焦距</span><span class="row-val changed">35 mm</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:11%"></div><div class="thumb" style="left:11%"></div></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">镜头性格</span></div>
+            <div class="select"><span>变形宽银幕 Anamorphic</span><span class="chip">变形</span><svg class="cv" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6B7585" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">焦外形态</span></div>
+            <div class="seg">
+              <button aria-pressed="false">圆形</button>
+              <button aria-pressed="true">椭圆</button>
+              <button aria-pressed="false">猫眼</button>
+              <button aria-pressed="false">六边</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">镜头暗角</span><span class="row-val">25</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:25%"></div><div class="thumb" style="left:25%"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 已展开：影调 -->
+      <section class="group" data-open="true">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">影调</span>
+          <span class="group-sum">反差 +18 · 暗部 +22</span>
+        </button>
+        <div class="group-body">
+          <div class="row">
+            <div class="row-head"><span class="row-name">反差</span><span class="row-val changed">+18</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:59%"></div><div class="thumb" style="left:59%"></div></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">黑位</span><span class="row-val">−12</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:44%"></div><div class="thumb" style="left:44%"></div></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">暗部提亮</span><span class="row-val changed">+22</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:72%"></div><div class="thumb" style="left:72%"></div></div>
+            <div class="hint">胶片感，暗部保留细节</div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">饱和度</span><span class="row-val">+8</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:54%"></div><div class="thumb" style="left:54%"></div></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">自然饱和</span><span class="row-val">+15</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:57%"></div><div class="thumb" style="left:57%"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 折叠：色彩风格 -->
+      <section class="group" data-open="false">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">色彩风格</span>
+          <span class="group-sum">Kodak 500T</span>
+        </button>
+        <div class="group-body" hidden>
+          <div class="row">
+            <div class="row-head"><span class="row-name">风格 Look</span></div>
+            <div class="select"><span>Kodak Vision3 500T</span><svg class="cv" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6B7585" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">强度</span><span class="row-val">70</span></div>
+            <div class="slider"><div class="track"></div><div class="fill" style="width:70%"></div><div class="thumb" style="left:70%"></div></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">阴影色</span><span class="row-val mono">#1A2A4A</span></div>
+            <div class="colorrow"><div class="swatch" style="background:#1A2A4A"></div><span style="font-size:11px;color:var(--text-tertiary)">冷蓝阴影</span></div>
+          </div>
+          <div class="row">
+            <div class="row-head"><span class="row-name">高光色</span><span class="row-val mono">#FFD9A8</span></div>
+            <div class="colorrow"><div class="swatch" style="background:#FFD9A8"></div><span style="font-size:11px;color:var(--text-tertiary)">暖琥珀高光</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 折叠：质感与光效 -->
+      <section class="group" data-open="false">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">质感与光效</span>
+          <span class="group-sum">颗粒 28 · 光晕 12</span>
+        </button>
+        <div class="group-body" hidden></div>
+      </section>
+
+      <!-- 折叠：布光 -->
+      <section class="group" data-open="false">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">布光与光质</span>
+          <span class="group-sum">霓虹 · 逆光</span>
+        </button>
+        <div class="group-body" hidden></div>
+      </section>
+
+      <!-- 折叠：镜头语言 -->
+      <section class="group" data-open="false">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">构图与镜头语言</span>
+          <span class="group-sum">中景 · 手持</span>
+        </button>
+        <div class="group-body" hidden></div>
+      </section>
+
+      <!-- 折叠：氛围 -->
+      <section class="group" data-open="false">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">时间与氛围</span>
+          <span class="group-sum">夜晚 · 雨</span>
+        </button>
+        <div class="group-body" hidden></div>
+      </section>
+
+      <!-- 情绪标签 -->
+      <section class="group" data-open="true">
+        <button class="group-head">
+          <svg class="group-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+          <span class="group-name">情绪标签</span>
+          <span class="group-sum">3 项</span>
+        </button>
+        <div class="group-body">
+          <div class="tags">
+            <button class="tag" aria-pressed="true">电影感</button>
+            <button class="tag" aria-pressed="true">赛博朋克</button>
+            <button class="tag" aria-pressed="true">梦幻</button>
+            <button class="tag" aria-pressed="false">怀旧</button>
+            <button class="tag" aria-pressed="false">压抑</button>
+            <button class="tag" aria-pressed="false">极简</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <!-- ══ 中：预览 ══ -->
+  <main class="stage">
+    <div class="stage-bar">
+      <span class="title">预览 · 感知模拟</span>
+      <span style="font-size:10px;color:var(--text-tertiary);padding:2px 6px;border:1px solid var(--border-subtle);border-radius:3px">非物理光线追踪</span>
+      <div class="tools">
+        <button class="tool" aria-pressed="true">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18"/></svg>
+          对比
+        </button>
+        <button class="tool">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20V10M9 20V4M15 20v-7M21 20v-12"/></svg>
+          直方图
+        </button>
+        <button class="tool">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+          网格
+        </button>
+        <button class="tool" style="font-family:var(--font-mono)">100%</button>
+      </div>
+    </div>
+
+    <div class="viewport">
+      <div class="frame">
+        <div class="photo">
+          <div class="sky"></div>
+          <div class="moon"></div>
+          <div class="buildings"></div>
+          <div class="street"></div>
+          <div class="wet"></div>
+          <div class="neon n1"></div>
+          <div class="neon n2"></div>
+          <div class="neon n3"></div>
+          <div class="refl" style="left:11%;background:#ff4d7e"></div>
+          <div class="refl" style="left:27%;background:#4fd1c5"></div>
+          <div class="refl" style="right:12%;background:#ffa63d"></div>
+          <div class="figure"></div>
+        </div>
+
+        <div class="hud">
+          <span><b>35</b>mm</span>
+          <span><b>f/1.8</b></span>
+          <span><b>1/48</b>s</span>
+          <span>ISO <b>800</b></span>
+          <span><b>3200</b>K</span>
+          <span>500T</span>
+          <span>2.39:1</span>
+        </div>
+
+        <div class="badge l">原图</div>
+        <div class="badge r">模拟</div>
+        <div class="divider"><div class="handle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0B0D10" stroke-width="2.4" stroke-linecap="round"><path d="M10 8l-4 4 4 4M14 8l4 4-4 4"/></svg>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <span>2048 × 1152</span>
+      <span>渲染 4.2 ms</span>
+      <span>0.75× 预览 · 停止操作后重渲全质量</span>
+      <span style="margin-left:auto">52 参数 · 68 词条</span>
+    </div>
+  </main>
+
+  <!-- ══ 右：提示词 ══ -->
+  <aside class="panel">
+    <div class="panel-head">
+      <div class="tabs">
+        <button aria-pressed="true">Midjourney</button>
+        <button aria-pressed="false">SD</button>
+        <button aria-pressed="false">即梦</button>
+        <button aria-pressed="false">可灵</button>
+        <button aria-pressed="false">Veo</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="seg" style="flex:1">
+          <button aria-pressed="false">精简</button>
+          <button aria-pressed="true">标准</button>
+          <button aria-pressed="false">详尽</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-scroll">
+      <!-- 输出 -->
+      <div class="sec-title">正文提示词</div>
+      <div class="out">
+        <div class="out-body">
+<span class="w">cinematic medium shot</span> of <span class="w">a lone figure</span> on a <span class="w">rain-slicked neon street</span> at <span class="w">night</span><span class="punct">,</span> shot on <span class="num">35mm</span> <span class="num">f/1.8</span> with <span class="w">shallow depth of field</span> and <span class="w">oval bokeh</span><span class="punct">,</span> <span class="w">anamorphic horizontal flares</span><span class="punct">,</span> <span class="w">backlit rim lighting</span> with <span class="w">neon practical lights</span><span class="punct">,</span> <span class="w">Kodak Vision3 500T tungsten film</span> <span class="w">warm nocturnal tones</span><span class="punct">,</span> <span class="w">teal and orange blockbuster grade</span><span class="punct">,</span> <span class="w">fine film grain</span> with <span class="w">halation glow around highlights</span><span class="punct">,</span> <span class="w">underexposed low-key</span><span class="punct">,</span> <span class="w">cinematic</span> <span class="w">cyberpunk</span> <span class="w">dreamy</span>
+<span class="flag">--ar 16:9 --style raw --s 250 --v 7</span>
+        </div>
+        <div class="out-foot">
+          <span style="font-size:10.5px;color:var(--text-tertiary)" class="mono">347 字 · 标准详略</span>
+          <button class="copy">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            <span>复制</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 词条溯源 -->
+      <div class="sec-title" style="margin-top:18px">语义词条 · 68</div>
+      <div class="chips">
+        <span class="chip"><i style="background:var(--c-shot)"></i>cinematic medium shot</span>
+        <span class="chip"><i style="background:var(--c-shot)"></i>lone figure</span>
+        <span class="chip"><i style="background:var(--c-atmosphere)"></i>rain-slicked</span>
+        <span class="chip"><i style="background:var(--c-atmosphere)"></i>night</span>
+        <span class="chip"><i style="background:var(--c-lens)"></i>shallow depth of field</span>
+        <span class="chip"><i style="background:var(--c-lens)"></i>oval bokeh</span>
+        <span class="chip"><i style="background:var(--c-lens)"></i>anamorphic</span>
+        <span class="chip"><i style="background:var(--c-light)"></i>backlit rim lighting</span>
+        <span class="chip"><i style="background:var(--c-light)"></i>neon practical lights</span>
+        <span class="chip"><i style="background:var(--c-color)"></i>500T tungsten film</span>
+        <span class="chip"><i style="background:var(--c-tone)"></i>teal and orange grade</span>
+        <span class="chip"><i style="background:var(--c-texture)"></i>fine film grain</span>
+        <span class="chip"><i style="background:var(--c-texture)"></i>halation glow</span>
+        <span class="chip"><i style="background:var(--c-tone)"></i>underexposed low-key</span>
+        <span class="chip"><i style="background:var(--c-style)"></i>cyberpunk</span>
+        <span class="chip muted"><i style="background:var(--c-quality)"></i>8k ultra detailed</span>
+      </div>
+
+      <!-- 溯源映射 -->
+      <div class="mapping">
+        <div class="sec-title" style="margin-bottom:7px">溯源</div>
+        <div class="chain">
+          <span class="k">光圈 f/1.8</span>
+          <span class="arrow">→</span>
+          <span>极浅景深</span>
+          <span class="arrow">→</span>
+          <span class="t">shallow depth of field</span>
+        </div>
+        <div class="hint">参数优先级高于情绪标签 · 点击高亮左侧滑块</div>
+      </div>
+
+      <!-- 保真度 -->
+      <div class="sec-title" style="margin-top:18px">参数保真度</div>
+      <div class="fidelity">
+        <span class="fid">高 <b>78%</b></span>
+        <span class="fid">中 <b>17%</b></span>
+        <span class="fid">低 <b>5%</b></span>
+      </div>
+      <div style="font-size:10.5px;color:var(--text-tertiary);margin-top:7px;line-height:1.6">
+        精确色温 3200K 与焦距 35mm 属低保真度，已转译为「暖调钨丝灯」「35mm」的体感描述，模型响应更稳定。
+      </div>
+
+      <!-- 负面词 -->
+      <div class="sec-title" style="margin-top:18px">负面提示词</div>
+      <div class="neg">cartoon, illustration, anime, painting, sketch, cartoon, 3d render, cgi, plastic skin, oversaturated, hdr, artificial lighting, watermark, text, logo, blurry, low resolution, deformed hands, extra fingers</div>
+      <div class="src">
+        <b>反推规则：</b>选中「青橙大片感」Look → 抑制「低饱和、灰暗」；选中「高反差」→ 抑制「flat, washed out」；选中「胶片颗粒」→ 抑制「digital noise, denoised」
+      </div>
+
+      <!-- 技术参数 -->
+      <div class="sec-title" style="margin-top:18px">技术参数</div>
+      <div class="out" style="padding:10px 12px">
+        <div class="out-body" style="font-size:11px;line-height:1.9">
+<span class="punct">--</span>ar <span class="w">16:9</span><br>
+<span class="punct">--</span>style <span class="w">raw</span><br>
+<span class="punct">--</span>s <span class="num">250</span><br>
+<span class="punct">--</span>v <span class="num">7</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+<script>
+// ── 分组折叠 ──────────────────────────────
+document.querySelectorAll('.group-head').forEach(h=>{
+  h.addEventListener('click',()=>{
+    const g=h.closest('.group');
+    const open=g.dataset.open==='true';
+    g.dataset.open=String(!open);
+    const body=g.querySelector('.group-body');
+    body.hidden=open;
+  });
+});
+
+// ── 分段 / 标签 ───────────────────────────
+document.querySelectorAll('.seg').forEach(g=>{
+  g.addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b)return;
+    g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+  });
+});
+document.querySelectorAll('.tags').forEach(g=>{
+  g.addEventListener('click',e=>{
+    const b=e.target.closest('.tag'); if(!b)return;
+    const on=b.getAttribute('aria-pressed')==='true';
+    b.setAttribute('aria-pressed',String(!on));
+    const sum=b.closest('.group').querySelector('.group-sum');
+    const n=g.querySelectorAll('.tag[aria-pressed="true"]').length;
+    if(sum)sum.textContent=n+' 项';
+  });
+});
+
+// ── 平台 Tab ──────────────────────────────
+const PLATFORMS={
+  Midjourney:{body:`<span class="w">cinematic medium shot</span> of <span class="w">a lone figure</span> on a <span class="w">rain-slicked neon street</span> at <span class="w">night</span><span class="punct">,</span> shot on <span class="num">35mm</span> <span class="num">f/1.8</span> with <span class="w">shallow depth of field</span> and <span class="w">oval bokeh</span><span class="punct">,</span> <span class="w">anamorphic horizontal flares</span><span class="punct">,</span> <span class="w">backlit rim lighting</span> with <span class="w">neon practical lights</span><span class="punct">,</span> <span class="w">Kodak Vision3 500T tungsten film</span> <span class="w">warm nocturnal tones</span><span class="punct">,</span> <span class="w">teal and orange blockbuster grade</span><span class="punct">,</span> <span class="w">fine film grain</span> with <span class="w">halation glow around highlights</span><span class="punct">,</span> <span class="w">underexposed low-key</span><span class="punct">,</span> <span class="w">cinematic</span> <span class="w">cyberpunk</span> <span class="w">dreamy</span>
+<span class="flag">--ar 16:9 --style raw --s 250 --v 7</span>`},
+  SD:{body:`<span class="w">cinematic film still</span>, <span class="w">medium shot</span> of <span class="w">a lone figure</span> on <span class="w">rain-slicked neon street</span>, <span class="w">night</span>, <span class="w">shallow depth of field</span>, <span class="w">oval bokeh</span>, <span class="w">anamorphic flares</span>, <span class="w">backlit rim lighting</span>, <span class="w">neon practical lights</span>, <span class="w">Kodak Vision3 500T</span>, <span class="w">teal and orange grade</span>, <span class="w">fine film grain</span>, <span class="w">halation</span>, <span class="w">low-key</span>, <span class="w">cyberpunk</span>, <span class="w">dreamy</span>
+<span class="punct">(cinematic still:1.3)</span> <span class="punct">(35mm lens:1.2)</span> <span class="punct">(shallow depth of field:1.3)</span> <span class="punct">(film grain:1.1)</span> <span class="punct">(rim light:1.2)</span>`},
+  即梦:{body:`电影感中景，一个孤独的人影站在雨后霓虹街道上，夜晚。<span class="w">浅景深</span>，<span class="w">椭圆焦外</span>，<span class="w">变形镜头横向炫光</span>，<span class="w">逆光轮廓</span>配合<span class="w">霓虹实景光源</span>。<span class="w">柯达 500T 钨丝胶片</span>暖调夜景，<span class="w">青橙大片感调色</span>，细腻<span class="w">胶片颗粒</span>，高光<span class="w">红晕光晕</span>，<span class="w">暗调欠曝</span>，<span class="w">赛博朋克</span>氛围，梦幻感。`},
+  可灵:{body:`【镜头】电影感中景，35mm 镜头 f/1.8 浅景深，椭圆焦外，轻微手持晃动
+【画面】孤独的人影站在雨后霓虹街道，夜晚，变形宽银幕横向炫光
+【光影】逆光轮廓光，霓虹招牌实景光源，青橙对比，暗调欠曝
+【风格】柯达 500T 钨丝胶片，细腻胶片颗粒，高光红晕，电影感
+【氛围】赛博朋克，雨夜反光，梦幻`},
+  Veo:{body:`A cinematic medium shot captures a lone figure standing on a rain-slicked neon street at night. The camera holds a 35mm lens wide open at f/1.8, producing <span class="w">shallow depth of field</span> and soft <span class="w">oval bokeh</span>, with subtle <span class="w">anamorphic horizontal flares</span> stretching across the frame. <span class="w">Backlit rim lighting</span> separates the figure from <span class="w">neon practical lights</span> reflecting on wet asphalt. The grade evokes <span class="w">Kodak Vision3 500T tungsten film</span>, with <span class="w">teal and orange blockbuster tones</span>, fine <span class="w">film grain</span>, and a soft <span class="w">halation glow</span> around highlights. <span class="w">Low-key underexposed</span> cyberpunk mood, dreamy and cinematic.`}
+};
+document.querySelectorAll('.tabs button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    const p=PLATFORMS[b.textContent.trim()];
+    const body=document.querySelector('.out-body');
+    if(p){body.innerHTML=p.body;body.style.whiteSpace='pre-wrap';}
+  });
+});
+
+// ── 详略级别 ──────────────────────────────
+const LEN={
+  精简:{body:`<span class="w">cinematic medium shot</span>, <span class="w">shallow depth of field</span>, <span class="w">rain-slicked neon street</span> at <span class="w">night</span>, <span class="w">teal and orange grade</span>, <span class="w">film grain</span>
+<span class="flag">--ar 16:9 --v 7</span>`,n:118},
+  标准:{body:PLATFORMS.Midjourney.body,n:347},
+  详尽:{body:PLATFORMS.Veo.body,n:612}
+};
+document.querySelectorAll('.panel-head .seg button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+    const l=LEN[b.textContent.trim()];
+    if(l){const body=document.querySelector('.out-body');body.innerHTML=l.body;body.style.whiteSpace='pre-wrap';
+      document.querySelector('.out-foot .mono').textContent=l.n+' 字 · '+b.textContent.trim()+'详略';}
+  });
+});
+
+// ── 滑块拖动 ──────────────────────────────
+function fmt(v,min,max,row){
+  const name=row.querySelector('.row-name').textContent.trim();
+  const pct=Math.round((v-min)/(max-min)*100);
+  row.querySelector('.fill').style.width=pct+'%';
+  row.querySelector('.thumb').style.left=pct+'%';
+  const val=row.querySelector('.row-val');
+  const isF=name.includes('光圈');
+  const isS=name.includes('快门');
+  const isISO=name.includes('ISO');
+  const isWB=name.includes('白平衡');
+  const isEV=name.includes('曝光补偿');
+  if(isF)val.textContent='f/'+(v<10?v.toFixed(1):Math.round(v));
+  else if(isS)val.textContent='1/'+Math.round(v*100)+' s';
+  else if(isISO)val.textContent=Math.round(v);
+  else if(isWB)val.textContent=Math.round(v)+' K';
+  else if(isEV)val.textContent=(v>0?'+':'')+v.toFixed(1)+' EV';
+  else val.textContent=(v>0?'+':'')+Math.round(v);
+  val.classList.add('changed');
+}
+document.querySelectorAll('.slider').forEach(sl=>{
+  const row=sl.closest('.row');
+  const name=row.querySelector('.row-name').textContent.trim();
+  const cfg={
+    '光圈':{min:0.7,max:22,cur:1.8},'快门速度':{min:2,max:8000,cur:48},
+    'ISO':{min:50,max:102400,cur:800},'白平衡':{min:2000,max:12000,cur:3200},
+    '曝光补偿':{min:-3,max:3,cur:0},'反差':{min:-100,max:100,cur:18},
+    '黑位':{min:-100,max:100,cur:-12},'暗部提亮':{min:0,max:100,cur:22},
+    '饱和度':{min:-100,max:100,cur:8},'自然饱和':{min:-100,max:100,cur:15},
+    '焦距':{min:8,max:300,cur:35},'镜头暗角':{min:0,max:100,cur:25}
+  }[name]||{min:0,max:100,cur:50};
+  let dragging=false;
+  const move=e=>{
+    const r=sl.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    let p=Math.max(0,Math.min(1,x/r.width));
+    let v;
+    if(cfg.min>0&&cfg.max/cfg.min>50){v=cfg.min*Math.pow(cfg.max/cfg.min,p);} // 对数
+    else{v=cfg.min+(cfg.max-cfg.min)*p;}
+    if(name.includes('快门'))v=Math.max(2,v);
+    fmt(v,cfg.min,cfg.max,row);
+  };
+  sl.addEventListener('pointerdown',e=>{dragging=true;sl.setPointerCapture(e.pointerId);move(e);});
+  sl.addEventListener('pointermove',e=>{if(dragging)move(e);});
+  sl.addEventListener('pointerup',()=>{dragging=false;});
+  sl.addEventListener('pointercancel',()=>{dragging=false;});
+});
+
+// ── 对比分割拖动 ──────────────────────────
+const div=document.querySelector('.divider'), frame=document.querySelector('.frame');
+let dragDiv=false;
+div.addEventListener('pointerdown',e=>{dragDiv=true;div.setPointerCapture(e.pointerId);e.stopPropagation();});
+div.addEventListener('pointermove',e=>{
+  if(!dragDiv)return;
+  const r=frame.getBoundingClientRect();
+  let p=(e.clientX-r.left)/r.width;
+  p=Math.max(.02,Math.min(.98,p));
+  div.style.left=(p*100)+'%';
+});
+div.addEventListener('pointerup',()=>{dragDiv=false;});
+
+// ── 复制 ──────────────────────────────────
+document.querySelector('.copy').addEventListener('click',async function(){
+  const t=document.querySelector('.out-body').innerText;
+  try{await navigator.clipboard.writeText(t);}catch(e){}
+  const s=this.querySelector('span')||this;
+  const old=s.textContent;
+  s.textContent='已复制';
+  setTimeout(()=>{s.textContent=old;},1300);
+});
+
+// ── 词条溯源 ──────────────────────────────
+document.querySelectorAll('.chip').forEach(c=>{
+  if(c.classList.contains('muted'))return;
+  c.style.cursor='pointer';
+  c.addEventListener('click',()=>{
+    const map=document.querySelector('.mapping .chain');
+    const t=c.textContent.trim();
+    const first=t.split(' ').slice(0,3).join(' ');
+    map.querySelector('.t').textContent=t;
+    map.scrollIntoView({behavior:'smooth',block:'nearest'});
+  });
+});
+
+// ── 提示词词条增删动效（示意） ──────────────
+document.querySelectorAll('.chip').forEach((c,i)=>{
+  c.style.transition='opacity .18s,transform .18s';
+  c.style.opacity='0';
+  c.style.transform='translateY(4px)';
+  setTimeout(()=>{c.style.opacity='';c.style.transform='';},60+i*26);
+});
+</script>
+</body>
+</html>

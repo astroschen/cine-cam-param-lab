@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineCam Param Lab · 移动端设计稿</title>
+<style>
+:root{
+  --bg-canvas:#0B0D10; --bg-panel:#111419; --bg-raised:#171B21; --bg-raised-2:#1E232B;
+  --border-subtle:#242A33; --border-default:#2E3540; --border-strong:#3C4451;
+  --text-primary:#E8ECF2; --text-secondary:#A3ADBD; --text-tertiary:#6B7585;
+  --accent:#4DA3FF; --accent-glow:rgba(77,163,255,.18);
+  --state-warn:#E8A33D;
+  --c-lens:#4FBF7B; --c-light:#F2A93B; --c-color:#F2719F; --c-texture:#E8A33D; --c-style:#F5C563;
+  --font-sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+  --radius-sm:4px; --radius-md:6px; --radius-lg:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--font-sans);background:var(--bg-canvas);color:var(--text-primary);
+  font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased;
+  display:flex;justify-content:center;padding:24px 12px;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+
+.stage{
+  width:390px;height:844px;background:var(--bg-canvas);position:relative;overflow:hidden;
+  border:1px solid var(--border-default);border-radius:20px;display:flex;flex-direction:column;
+}
+.statusbar{
+  height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+  font-size:10px;color:var(--text-tertiary);font-family:var(--font-mono);
+}
+.appbar{
+  height:48px;display:flex;align-items:center;gap:10px;padding:0 12px;
+  border-bottom:1px solid var(--border-subtle);background:var(--bg-panel);
+}
+.icon-btn{width:32px;height:32px;display:grid;place-items:center;border-radius:var(--radius-md);color:var(--text-secondary)}
+.icon-btn:hover{background:var(--bg-raised)}
+.logo-txt{font-size:13px;font-weight:500}
+.logo-txt span{color:var(--text-tertiary);font-weight:400}
+.spacer{flex:1}
+.badge-p{font-size:10px;padding:3px 7px;border-radius:3px;background:var(--bg-raised);color:var(--text-tertiary);border:1px solid var(--border-default)}
+
+.scroll{flex:1;overflow-y:auto;min-height:0}
+.scroll::-webkit-scrollbar{width:0}
+
+.section{padding:12px 14px;border-bottom:1px solid var(--border-subtle)}
+.section-title{
+  display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-tertiary);
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;
+}
+.section-title::after{content:"";flex:1;height:1px;background:var(--border-subtle)}
+
+/* 预览 */
+.frame{
+  position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:var(--radius-lg);
+  border:1px solid var(--border-subtle);background:#05070a;
+}
+.sky{position:absolute;inset:0;background:linear-gradient(180deg,#0a1626 0%,#16283f 42%,#241a2b 68%,#120d16 100%)}
+.moon{position:absolute;top:12%;right:16%;width:44px;height:44px;border-radius:50%;
+  background:radial-gradient(circle,#ffe9c0 0%,rgba(255,220,170,.35) 42%,transparent 70%)}
+.buildings{position:absolute;left:0;right:0;bottom:38%;height:46%;
+  background:repeating-linear-gradient(90deg,#0b1119 0 20px,#0e151f 20px 44px)}
+.buildings::after{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(255,214,140,.5) 0 3px,transparent 3px 24px);
+  -webkit-mask-image:repeating-linear-gradient(90deg,#000 0 11px,transparent 11px 40px);
+          mask-image:repeating-linear-gradient(90deg,#000 0 11px,transparent 11px 40px);opacity:.5}
+.street{position:absolute;left:0;right:0;bottom:0;height:38%;background:linear-gradient(180deg,#171320,#221a26 55%,#0d0a12)}
+.wet{position:absolute;left:0;right:0;bottom:0;height:38%;background:linear-gradient(180deg,rgba(255,120,80,.16),transparent 60%)}
+.neon{position:absolute;border-radius:2px;filter:blur(1px)}
+.n1{left:9%;top:44%;width:48px;height:6px;background:#ff4d7e;box-shadow:0 0 14px 4px rgba(255,77,126,.55)}
+.n2{left:26%;top:38%;width:30px;height:5px;background:#4fd1c5;box-shadow:0 0 12px 3px rgba(79,209,197,.5)}
+.n3{right:11%;top:41%;width:38px;height:5px;background:#ffa63d;box-shadow:0 0 13px 3px rgba(255,166,61,.5)}
+.refl{position:absolute;bottom:6%;height:24%;width:3px;border-radius:2px;filter:blur(2px);opacity:.55}
+.figure{position:absolute;left:47%;bottom:24%;width:23px;height:78px;
+  background:linear-gradient(180deg,#05070a,#0d1118);border-radius:40% 40% 18% 18%}
+.hud{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);display:flex;padding:4px 2px;
+  background:rgba(17,20,25,.72);backdrop-filter:blur(12px);border:1px solid var(--border-default);
+  border-radius:var(--radius-md);font-family:var(--font-mono);font-size:9px;color:var(--text-secondary);
+}
+.hud span{padding:0 6px;white-space:nowrap}
+.hud span+span{border-left:1px solid var(--border-default)}
+.hud b{color:var(--text-primary);font-weight:400}
+.badge-l{position:absolute;top:8px;left:8px;padding:2px 7px;border-radius:var(--radius-sm);
+  background:rgba(17,20,25,.78);font-size:9.5px;color:var(--text-secondary)}
+.badge-r{position:absolute;top:8px;right:8px;padding:2px 7px;border-radius:var(--radius-sm);
+  background:rgba(17,20,25,.78);font-size:9.5px;color:var(--accent)}
+.divider{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.handle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:28px;height:28px;
+  border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+
+/* 滑块 */
+.row{padding:8px 0}
+.row-head{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.row-name{font-size:12.5px;color:var(--text-secondary)}
+.row-val{margin-left:auto;font-size:12.5px;font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.slider{position:relative;height:26px;cursor:pointer}
+.track{position:absolute;top:11px;left:0;right:0;height:4px;background:var(--bg-raised-2);border-radius:2px}
+.fill{position:absolute;top:11px;left:0;height:4px;background:var(--accent);border-radius:2px}
+.thumb{position:absolute;top:8px;width:14px;height:14px;margin-left:-7px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--bg-canvas)}
+.ticks{position:relative;height:12px;margin-top:2px}
+.ticks i{position:absolute;top:0;width:1px;height:3px;background:var(--border-strong)}
+.ticks span{position:absolute;top:3px;transform:translateX(-50%);font-size:9.5px;color:var(--text-tertiary);font-family:var(--font-mono)}
+.hint{font-size:11px;color:var(--text-tertiary);margin-top:4px}
+
+/* 折叠面板 */
+.acc{border-bottom:1px solid var(--border-subtle)}
+.acc-head{width:100%;display:flex;align-items:center;gap:8px;padding:13px 14px;text-align:left}
+.acc-head:hover{background:var(--bg-raised)}
+.caret{width:8px;height:8px;color:var(--text-tertiary);transition:transform .18s;flex:none}
+.acc[data-open="false"] .caret{transform:rotate(-90deg)}
+.acc-name{font-size:12.5px;font-weight:500}
+.acc-sum{margin-left:auto;font-size:11px;color:var(--text-tertiary);max-width:120px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.acc-body{padding:0 14px 14px}
+
+/* 底部动作栏 */
+.tabbar{
+  height:56px;display:flex;border-top:1px solid var(--border-subtle);background:var(--bg-panel);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:10px;color:var(--text-tertiary)}
+.tabbar button[aria-pressed="true"]{color:var(--accent)}
+.tabbar .primary{background:var(--accent);color:#08131F;font-size:12px;font-weight:500;flex-direction:row;gap:6px}
+
+/* 提示词面板 */
+.prompt-box{
+  background:var(--bg-raised);border:1px solid var(--border-default);border-radius:var(--radius-lg);
+  padding:11px;font-family:var(--font-mono);font-size:11px;line-height:1.8;color:var(--text-secondary);
+}
+.prompt-box .w{color:var(--text-primary)}
+.prompt-box .flag{color:var(--accent)}
+.tabs{display:flex;gap:1px;background:var(--bg-raised);padding:2px;border-radius:var(--radius-md);margin-bottom:10px}
+.tabs button{flex:1;padding:5px 3px;border-radius:var(--radius-sm);font-size:11px;color:var(--text-tertiary)}
+.tabs button[aria-pressed="true"]{background:var(--bg-raised-2);color:var(--text-primary);box-shadow:inset 0 0 0 1px var(--border-strong)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;padding:3px 7px;border-radius:var(--radius-sm);
+  border:1px solid var(--border-default);color:var(--text-secondary);background:var(--bg-raised)}
+.chip i{width:5px;height:5px;border-radius:50%;flex:none}
+.fid{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text-tertiary);
+  padding:3px 8px;border-radius:var(--radius-sm);background:var(--bg-raised);border:1px solid var(--border-subtle)}
+.fid b{font-weight:500;font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="statusbar"><span>9:41</span><span>●●●● 5G ▮</span></div>
+
+  <div class="appbar">
+    <button class="icon-btn">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="logo-txt">CineCam <span>Param Lab</span></div>
+    <div class="spacer"></div>
+    <span class="badge-p">霓虹夜雨</span>
+  </div>
+
+  <div class="scroll">
+    <!-- 预览 -->
+    <div class="section">
+      <div class="frame">
+        <div class="sky"></div>
+        <div class="moon"></div>
+        <div class="buildings"></div>
+        <div class="street"></div>
+        <div class="wet"></div>
+        <div class="neon n1"></div>
+        <div class="neon n2"></div>
+        <div class="neon n3"></div>
+        <div class="refl" style="left:11%;background:#ff4d7e"></div>
+        <div class="refl" style="left:27%;background:#4fd1c5"></div>
+        <div class="refl" style="right:12%;background:#ffa63d"></div>
+        <div class="figure"></div>
+        <div class="hud">
+          <span><b>35</b>mm</span><span><b>f/1.8</b></span><span><b>1/48</b>s</span><span>500T</span>
+        </div>
+        <div class="badge-l">原图</div>
+        <div class="badge-r">模拟</div>
+        <div class="divider"><div class="handle">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0B0D10" stroke-width="2.4" stroke-linecap="round"><path d="M10 8l-4 4 4 4M14 8l4 4-4 4"/></svg>
+        </div></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:9px">
+        <button style="flex:1;height:30px;border-radius:var(--radius-md);background:var(--bg-raised);
+          border:1px solid var(--border-default);font-size:11.5px;color:var(--text-secondary)">对比</button>
+        <button style="flex:1;height:30px;border-radius:var(--radius-md);background:var(--bg-raised);
+          border:1px solid var(--border-default);font-size:11.5px;color:var(--text-secondary)">换参考图</button>
+        <button style="flex:1;height:30px;border-radius:var(--radius-md);background:var(--bg-raised);
+          border:1px solid var(--border-default);font-size:11.5px;color:var(--text-secondary)">直方图</button>
+      </div>
+    </div>
+
+    <!-- 参数手风琴 -->
+    <div class="acc" data-open="true">
+      <button class="acc-head">
+        <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="acc-name">曝光</span>
+        <span class="acc-sum">f/1.8 · 1/48s · ISO 800</span>
+      </button>
+      <div class="acc-body">
+        <div class="row">
+          <div class="row-head"><span class="row-name">光圈</span><span class="row-val">f/1.8</span></div>
+          <div class="slider"><div class="track"></div><div class="fill" style="width:34%"></div><div class="thumb" style="left:34%"></div></div>
+          <div class="ticks"><i style="left:0"></i><span style="left:0">0.7</span><i style="left:34%"></i><span style="left:34%">1.8</span><i style="left:68%"></i><span style="left:68%">8</span><i style="left:100%"></i><span style="left:100%">22</span></div>
+          <div class="hint">极浅景深，背景奶油化虚化</div>
+        </div>
+        <div class="row">
+          <div class="row-head"><span class="row-name">快门速度</span><span class="row-val">1/48 s</span></div>
+          <div class="slider"><div class="track"></div><div class="fill" style="width:46%"></div><div class="thumb" style="left:46%"></div></div>
+        </div>
+        <div class="row">
+          <div class="row-head"><span class="row-name">ISO</span><span class="row-val">800</span></div>
+          <div class="slider"><div class="track"></div><div class="fill" style="width:38%"></div><div class="thumb" style="left:38%"></div></div>
+        </div>
+        <div class="row">
+          <div class="row-head"><span class="row-name">白平衡 <span style="color:var(--state-warn);font-size:10px">≈</span></span><span class="row-val">3200 K</span></div>
+          <div class="slider"><div class="track"></div><div class="fill" style="width:17%"></div><div class="thumb" style="left:17%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="acc" data-open="false">
+      <button class="acc-head">
+        <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="acc-name">镜头</span>
+        <span class="acc-sum">35mm · 变形宽银幕</span>
+      </button>
+      <div class="acc-body" hidden></div>
+    </div>
+
+    <div class="acc" data-open="false">
+      <button class="acc-head">
+        <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="acc-name">影调</span>
+        <span class="acc-sum">反差 +18 · 暗部 +22</span>
+      </button>
+      <div class="acc-body" hidden></div>
+    </div>
+
+    <div class="acc" data-open="false">
+      <button class="acc-head">
+        <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="acc-name">色彩风格</span>
+        <span class="acc-sum">Kodak 500T</span>
+      </button>
+      <div class="acc-body" hidden></div>
+    </div>
+
+    <div class="acc" data-open="false">
+      <button class="acc-head">
+        <svg class="caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="acc-name">质感与光效</span>
+        <span class="acc-sum">颗粒 28 · 光晕 12</span>
+      </button>
+      <div class="acc-body" hidden></div>
+    </div>
+
+    <!-- 提示词 -->
+    <div class="section">
+      <div class="section-title">提示词</div>
+      <div class="tabs">
+        <button aria-pressed="true">MJ</button>
+        <button aria-pressed="false">SD</button>
+        <button aria-pressed="false">即梦</button>
+        <button aria-pressed="false">可灵</button>
+        <button aria-pressed="false">Veo</button>
+      </div>
+      <div class="prompt-box">
+<span class="w">cinematic medium shot</span> of <span class="w">a lone figure</span> on a <span class="w">rain-slicked neon street</span> at <span class="w">night</span>, shot on <span class="w">35mm f/1.8</span> with <span class="w">shallow depth of field</span> and <span class="w">oval bokeh</span>, <span class="w">backlit rim lighting</span> with <span class="w">neon practical lights</span>, <span class="w">Kodak Vision3 500T tungsten film</span>, <span class="w">teal and orange grade</span>, <span class="w">fine film grain</span>, <span class="w">halation</span>, <span class="w">low-key</span>, <span class="w">cyberpunk</span>
+<span class="flag">--ar 16:9 --style raw --s 250 --v 7</span>
+      </div>
+      <div class="chips" style="margin-top:9px">
+        <span class="chip"><i style="background:#5FB8FF"></i>cinematic medium shot</span>
+        <span class="chip"><i style="background:#4FBF7B"></i>shallow depth of field</span>
+        <span class="chip"><i style="background:#F2A93B"></i>backlit rim lighting</span>
+        <span class="chip"><i style="background:#F2719F"></i>500T tungsten film</span>
+        <span class="chip"><i style="background:#E8A33D"></i>fine film grain</span>
+        <span class="chip"><i style="background:#F5C563"></i>cyberpunk</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <span class="fid">高 <b>78%</b></span>
+        <span class="fid">中 <b>17%</b></span>
+        <span class="fid">低 <b>5%</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabbar">
+    <button aria-pressed="true">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/></svg>
+      参数
+    </button>
+    <button>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/></svg>
+      提示词
+    </button>
+    <button class="primary">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      复制
+    </button>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.acc-head').forEach(h=>{
+  h.addEventListener('click',()=>{
+    const a=h.closest('.acc');const open=a.dataset.open==='true';
+    a.dataset.open=String(!open);a.querySelector('.acc-body').hidden=open;
+  });
+});
+document.querySelectorAll('.tabs button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    b.parentElement.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true');
+  });
+});
+</script>
+</body>
+</html>
