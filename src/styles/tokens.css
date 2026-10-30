@@ -1,0 +1,107 @@
+/**
+ * 设计令牌 —— 单一事实来源
+ * 数值与 docs/04-visual-design.md 完全一致
+ */
+
+:root {
+  /* ── 背景层级 ── */
+  --bg-canvas: #0b0d10;
+  --bg-panel: #111419;
+  --bg-raised: #171b21;
+  --bg-raised-2: #1e232b;
+  --bg-overlay: #222831;
+
+  /* ── 边框 ── */
+  --border-subtle: #242a33;
+  --border-default: #2e3540;
+  --border-strong: #3c4451;
+
+  /* ── 文字 ── */
+  --text-primary: #e8ecf2;
+  --text-secondary: #a3adbd;
+  --text-tertiary: #6b7585;
+  --text-inverse: #0b0d10;
+
+  /* ── 强调色（仅用于数据与交互） ── */
+  --accent: #4da3ff;
+  --accent-dim: #2e6da8;
+  --accent-glow: rgba(77, 163, 255, 0.18);
+
+  /* ── 状态色 ── */
+  --state-warn: #e8a33d;
+  --state-ok: #4fbf7b;
+  --state-err: #e5544b;
+  --state-info: #7b8ce8;
+
+  /* ── 语义分类色（提示词词条） ── */
+  --c-shot: #5fb8ff;
+  --c-composition: #7b8ce8;
+  --c-lens: #4fbf7b;
+  --c-motion: #4fd1c5;
+  --c-light: #f2a93b;
+  --c-color: #f2719f;
+  --c-tone: #c084fc;
+  --c-texture: #e8a33d;
+  --c-atmosphere: #68c9a8;
+  --c-style: #f5c563;
+  --c-quality: #8d99ae;
+
+  /* ── 字体 ── */
+  --font-sans: 'Inter', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, 'Courier New', monospace;
+
+  /* ── 字号 ── */
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-lg: 15px;
+  --fs-xl: 18px;
+  --fs-2xl: 24px;
+  --fs-3xl: 32px;
+
+  /* ── 间距 ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+
+  /* ── 布局尺寸 ── */
+  --sidebar-w: 320px;
+  --panel-w: 400px;
+  --topbar-h: 52px;
+  --drawer-h: 320px;
+  --row-h: 52px;
+  --control-h: 28px;
+
+  /* ── 圆角 ── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  /* ── 动效 ── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 280ms;
+
+  /* ── 阴影 ── */
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* 窄屏收紧侧栏与面板 */
+@media (max-width: 1439px) {
+  :root {
+    --sidebar-w: 280px;
+    --panel-w: 340px;
+  }
+}
